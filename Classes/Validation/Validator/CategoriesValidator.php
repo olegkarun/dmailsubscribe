@@ -5,7 +5,7 @@ namespace DPN\Dmailsubscribe\Validation\Validator;
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2016 Björn Fromme <fromme@dreipunktnull.come>
+ *  (c) 2016 Björn Fromme <fromme@dreipunktnull.come>, 2017 Vitaliy <vitaliy@webberry.ua>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -43,7 +43,7 @@ use TYPO3\CMS\Extbase\Validation\Validator\NotEmptyValidator;
  * @package Dmailsubscribe
  * @subpackage Validation/Validator
  */
-class SubscriptionValidator extends GenericObjectValidator
+class CategoriesValidator extends NotEmptyValidator
 {
     /**
      * @var \DPN\Dmailsubscribe\Service\SettingsService
@@ -87,32 +87,14 @@ class SubscriptionValidator extends GenericObjectValidator
     public function validate($object)
     {
         if (false === $this->canValidate($object)) {
-            throw new InvalidSubjectException(sprintf('Expected "%s" but was "%s"', 'Tx_Dmailsubscribe_Domain_Model_Subscription', get_class($object)));
+            throw new InvalidSubjectException(sprintf('Expected array but was "%s"', get_class($object)));
         }
 
         $requiredFields = $this->settingsService->getSetting('requiredFields', [], ',');
-        $lookupPageIds = $this->settingsService->getSetting('lookupPids', [], ',');
-
-        /** @var NotEmptyValidator $emailNotEmptyValidator */
-        $emailNotEmptyValidator = $this->objectManager->get(NotEmptyValidator::class);
-        $this->addPropertyValidator('email', $emailNotEmptyValidator);
-
-        /** @var EmailAddressValidator $emailAddressValidator */
-        $emailAddressValidator = $this->objectManager->get(EmailAddressValidator::class);
-        $this->addPropertyValidator('email', $emailAddressValidator);
-
-        /** @var EmailNotRegisteredValidator $emailNotRegisteredValidator */
-        $emailNotRegisteredValidator = $this->objectManager->get(EmailNotRegisteredValidator::class, ['lookupPageIds' => $lookupPageIds]);
-        $this->addPropertyValidator('email', $emailNotRegisteredValidator);
-
-        foreach ($requiredFields as $field) {
-            if($field == 'categories') continue;
-            /** @var NotEmptyValidator $notEmptyValidator */
-            $notEmptyValidator = $this->objectManager->get(NotEmptyValidator::class);
-            $this->addPropertyValidator($field, $notEmptyValidator);
-        }
-
-        return parent::validate($object);
+        $object = array_filter($object);
+        
+        if(is_array($requiredFields) && in_array('categories', $requiredFields)) 
+            return parent::validate($object);
     }
 
     /**
@@ -121,6 +103,6 @@ class SubscriptionValidator extends GenericObjectValidator
      */
     public function canValidate($object)
     {
-        return $object instanceof Subscription;
+        return is_array($object);
     }
 }

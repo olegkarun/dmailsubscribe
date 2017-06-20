@@ -161,6 +161,7 @@ class SubscriptionController extends ActionController
      * @param array $categories
      * @return void
      * @validate $subscription \DPN\Dmailsubscribe\Validation\Validator\SubscriptionValidator
+     * @validate $categories \DPN\Dmailsubscribe\Validation\Validator\CategoriesValidator
      */
     public function subscribeAction(Subscription $subscription, array $categories = [])
     {
